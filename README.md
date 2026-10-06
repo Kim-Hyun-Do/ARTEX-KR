@@ -91,27 +91,6 @@ cp .env.example .env          # POSTGRES_PASSWORD 설정, ANTHROPIC_API_KEY 는 
 docker compose up -d          # artex 이미지 + postgres 를 함께 기동
 # → http://localhost:8787 접속 (처음 들어가면 /setup 에서 관리자 비밀번호 설정)
 ```
-```bash
-# 1. 프런트엔드 디렉토리로 이동하여 완전한 청소 후 정적 빌드
-cd /home/user/emerg/artex-ko/web
-rm -rf .next out node_modules
-npm install && npm run build:static
-cd ..
-
-# 2. 기존에 잘못 생성되었을 수 있는 dist 디렉토리 완전히 삭제 후 새로 생성
-rm -rf server/webui/dist
-mkdir -p server/webui/dist
-
-# 3. [중요] web/out 폴더 '자체'가 아니라, 그 '내부의 파일들'을 dist로 복사
-cp -r web/out/* server/webui/dist/
-
-# 4. 프런트엔드가 내장된 상태로 Go 백엔드 컴파일 다시 진행
-CGO_ENABLED=0 go build -tags embedui -o artex ./cmd/artex
-
-# 5. 기존 프로세스가 실행 중일 수 있으니 안전하게 포트를 비우고 재시작
-pkill -f artex
-./start.sh
-```
 
 
 위 상류 이미지에는 자주 쓰는 도구(ripgrep·curl·vim·npm·nmap 등)가 들어 있습니다. `./skills` 와 `./data` 는 바인드 마운트로 호스트에 남아 컨테이너를 다시 만들어도 보존됩니다.
@@ -129,6 +108,27 @@ pkill -f artex
   CGO_ENABLED=0 go build -tags embedui -o artex ./cmd/artex   # 3) 프런트 내장 컴파일
   ./start.sh                                          # → http://localhost:8787
   ```
+  ```bash
+  # 1. 프런트엔드 디렉토리로 이동하여 완전한 청소 후 정적 빌드
+  cd /home/user/emerg/artex-ko/web
+  rm -rf .next out node_modules
+  npm install && npm run build:static
+  cd ..
+  
+  # 2. 기존에 잘못 생성되었을 수 있는 dist 디렉토리 완전히 삭제 후 새로 생성
+  rm -rf server/webui/dist
+  mkdir -p server/webui/dist
+  
+  # 3. [중요] web/out 폴더 '자체'가 아니라, 그 '내부의 파일들'을 dist로 복사
+  cp -r web/out/* server/webui/dist/
+  
+  # 4. 프런트엔드가 내장된 상태로 Go 백엔드 컴파일 다시 진행
+  CGO_ENABLED=0 go build -tags embedui -o artex ./cmd/artex
+  
+  # 5. 기존 프로세스가 실행 중일 수 있으니 안전하게 포트를 비우고 재시작
+  pkill -f artex
+  ./start.sh
+```
 
 > 실행은 `./artex` 를 직접 돌리지 말고 `start.sh`(Windows 는 `start.bat`)로 하십시오. 이 스크립트는 종료 코드에 따라 프로그램을 다시 띄우는 감시자이고, UI 의 "원클릭 업데이트"도 이 스크립트가 처리합니다.
 
